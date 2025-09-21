@@ -1,52 +1,23 @@
-name: Salesforce CI/CD
+name: Debug Salesforce Credentials
 
-# Trigger on push or PR to main
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  debug-credentials:
     runs-on: ubuntu-latest
-
     env:
       SF_USERNAME: ${{ secrets.SF_USERNAME }}
       SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID }}
       SF_SERVER_KEY: ${{ secrets.SF_SERVER_KEY }}
-      SF_INSTANCE_URL: https://login.salesforce.com/ # Sandbox URL
-
+      SF_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
     steps:
-      # 1️⃣ Checkout repo
-      - name: Checkout Code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      # 3️⃣ Install Salesforce CLI
-      - name: Install Salesforce CLI
-        run: npm install -g sfdx-cli
-
-      # 4️⃣ Authenticate to Salesforce
-      - name: Authenticate to Salesforce
+      - name: Show Environment Variables
         run: |
-          echo "${{ secrets.SF_SERVER_KEY }}" > server.key
-          sfdx auth:jwt:grant --clientid $SF_CLIENT_ID \
-            --username $SF_USERNAME \
-            --jwtkeyfile server.key \
-            --instanceurl $SF_INSTANCE_URL
-
-      # 5️⃣ Deploy Metadata (Check Only)
-       # - name: Deploy to Sandbox (Check Only)
-       # run: sfdx force:source:deploy -p force-app --targetusername $SF_USERNAME --checkonly
-
-      # 6️⃣ Run Apex Tests
-      - name: Run Apex Tests
-        run: sfdx force:apex:test:run --resultformat human --wait 10
+          echo "SF_USERNAME=$SF_USERNAME"
+          echo "SF_CLIENT_ID=$SF_CLIENT_ID"
+          echo "SF_INSTANCE_URL=$SF_INSTANCE_URL"
+          echo "SF_SERVER_KEY is set? $( [ -n "$SF_SERVER_KEY" ] && echo yes || echo no )"
