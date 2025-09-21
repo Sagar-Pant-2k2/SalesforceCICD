@@ -15,23 +15,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 1️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      # 2️⃣ Install Salesforce CLI (official action)
       - name: Install Salesforce CLI
-        uses: salesforcecli/sfdx-action@v1
+        run: |
+          npm install sfdx-cli --global
 
-      # 3️⃣ Write private key to file
       - name: Write private key to file
         run: |
           echo "${SF_SERVER_KEY}" > server.key
           chmod 600 server.key
 
-      # 4️⃣ Authenticate to Salesforce
       - name: Authenticate to Salesforce
         run: |
           sfdx auth:jwt:grant \
@@ -40,20 +37,17 @@ jobs:
             --username $SF_USERNAME \
             --instanceurl $SF_INSTANCE_URL
 
-      # 5️⃣ Display org info (debug)
-      - name: Display org info
+      - name: Display org info (debug)
         run: |
           sfdx force:org:display --targetusername $SF_USERNAME
 
-      # 6️⃣ Check-only deploy
       - name: Check-only deploy
         id: check_deploy
         run: |
           sfdx force:source:deploy -p force-app --targetusername $SF_USERNAME --checkonly --json > result.json
           cat result.json
 
-      # 7️⃣ Actual deploy if check-only passes
-      - name: Deploy to Salesforce
+      - name: Actual deploy if check-only passes
         if: ${{ success() }}
         run: |
           sfdx force:source:deploy -p force-app --targetusername $SF_USERNAME --json
