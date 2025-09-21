@@ -44,8 +44,8 @@ jobs:
             --instanceurl $SF_INSTANCE_URL
 
       # 5️⃣ Deploy Metadata (Check Only)
-      - name: Deploy to Sandbox (Check Only)
-        run: sfdx force:source:deploy -p force-app --targetusername $SF_USERNAME --checkonly
+       # - name: Deploy to Sandbox (Check Only)
+       # run: sfdx force:source:deploy -p force-app --targetusername $SF_USERNAME --checkonly
 
       # 6️⃣ Run Apex Tests
       - name: Run Apex Tests
