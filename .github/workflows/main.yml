@@ -31,7 +31,7 @@ jobs:
 
       - name: Authenticate to Salesforce
         run: |
-          sfdx auth:jwt:grant \
+          sfdx force:auth:jwt:grant \
             --clientid $SF_CLIENT_ID \
             --jwtkeyfile server.key \
             --username $SF_USERNAME \
