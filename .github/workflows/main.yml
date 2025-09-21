@@ -24,9 +24,9 @@ jobs:
         run: |
           npm install sfdx-cli --global
 
-      - name: Write private key to file
+      - name: Write private key
         run: |
-          echo "${SF_SERVER_KEY}" > server.key
+          echo "${SF_SERVER_KEY}" | tr -d '\r' > server.key
           chmod 600 server.key
 
       - name: Authenticate to Salesforce
@@ -36,6 +36,7 @@ jobs:
             --jwtkeyfile server.key \
             --username $SF_USERNAME \
             --instanceurl $SF_INSTANCE_URL
+          sfdx force:org:list --all
 
       - name: Display org info (debug)
         run: |
