@@ -1,10 +1,10 @@
-name: Debug Salesforce Credentials
+name: Salesforce CI/CD
 
 on:
   workflow_dispatch:
 
 jobs:
-  debug-credentials:
+  deploy:
     runs-on: ubuntu-latest
     env:
       SF_USERNAME: ${{ secrets.SF_USERNAME }}
@@ -12,12 +12,38 @@ jobs:
       SF_SERVER_KEY: ${{ secrets.SF_SERVER_KEY }}
       SF_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Show Environment Variables
+      - name: Install Salesforce CLI
         run: |
-          echo "SF_USERNAME=$SF_USERNAME"
-          echo "SF_CLIENT_ID=$SF_CLIENT_ID"
-          echo "SF_INSTANCE_URL=$SF_INSTANCE_URL"
-          echo "SF_SERVER_KEY is set? $( [ -n "$SF_SERVER_KEY" ] && echo yes || echo no )"
+          curl -s https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz | tar xJ
+          ./sfdx/install
+
+      - name: Write private key to file
+        run: |
+          echo "${SF_SERVER_KEY}" > server.key
+          chmod 600 server.key
+
+      - name: Authenticate to Salesforce
+        run: |
+          ./sfdx/sfdx auth:jwt:grant \
+            --clientid $SF_CLIENT_ID \
+            --jwtkeyfile server.key \
+            --username $SF_USERNAME \
+            --instanceurl $SF_INSTANCE_URL
+
+      - name: Display org info (debug)
+        run: |
+          ./sfdx/sfdx force:org:display --targetusername $SF_USERNAME
+
+      - name: Check-only deploy
+        id: check_deploy
+        run: |
+          ./sfdx/sfdx force:source:deploy -p force-app --targetusername $SF_USERNAME --checkonly --json > result.json
+          cat result.json
+
+      - name: Actual deploy if check-only passes
+        if: ${{ success() }}
+        run: |
+          ./sfdx/sfdx force:source:deploy -p force-app --targetusername $SF_USERNAME --json
