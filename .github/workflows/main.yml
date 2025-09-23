@@ -44,9 +44,8 @@ jobs:
 
       - name: Check-only deploy
         id: check_deploy
-        run: |
-          sfdx force:source:deploy -p force-app --targetusername $SF_USERNAME --checkonly --json > result.json
-          cat result.json
+        run: sfdx force:source:deploy -p force-app --targetusername $SF_USERNAME --checkonly --json
+
 
       - name: Actual deploy if check-only passes
         if: ${{ success() }}
